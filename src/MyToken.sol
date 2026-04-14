@@ -6,6 +6,7 @@ contract MyToken{
     string public symbol;
     uint8 public decimals;   //八位足够，过多会浪费存储空间，Gas费高
     uint256 public totalSupply;
+    address public owner;
     mapping(address => uint256) public balances;
     mapping(address => mapping(address => uint256)) public allowance;
     //    授权者地址  =>       (被授权者地址 => 授权金额)
@@ -14,6 +15,10 @@ contract MyToken{
     //添加事件(events)
     event Transfer(address indexed from,address indexed to,uint256 amount);
     event Approval(address indexed owner,address indexed spender,uint256 amount);
+
+    modifier onlyOwner(){
+        require(msg.sender == owner,"Not owner");
+    }
 
     constructor(){
         name = "Colin";
