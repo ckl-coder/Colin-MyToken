@@ -18,6 +18,7 @@ contract MyToken{
 
     modifier onlyOwner(){
         require(msg.sender == owner,"Not owner");
+        _;
     }
 
     constructor(){
@@ -26,7 +27,9 @@ contract MyToken{
         decimals = 18;
         totalSupply = 100000 * (10 ** decimals);   //100万总供应量
         balances[msg.sender] = totalSupply;
+        owner = msg.sender;
     }
+
 
     //转账（从msg.sender转向用户）
     function transfer(address to, uint256 amount) public returns(bool){
@@ -57,4 +60,22 @@ contract MyToken{
         emit Transfer(from,to,amount);
         return true;
     }
+
+    //mint铸造
+    function mint(address to,uint256 amount) public onlyOwner returns(bool){
+        balances[to] += amount;
+        totalSupply += amount;
+        emit Transfer(address(0),to,amount);
+        return true;
+    }
+
+     //burn销毁
+     function burn(uint256 amount) public returns(bool){
+        require(balances[msg.sender] >= amount,"Insufficient amount");
+        balances[msg.sender] -= amount;
+        totalSupply -= amount;
+        emit Transfer(msg.sender,address(0),amount);
+        return true;
+     }
+
 }
