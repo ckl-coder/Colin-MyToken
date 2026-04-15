@@ -55,7 +55,7 @@ contract MyTokenTest is Test {
         address recipient = vm.addr(2);
         uint256 excessiveAmount = token.totalSupply() + 1;
         vm.expectRevert("Insufficient balance");
-        token.transfer(recipient,excessiveAmount);
+        token.transfer(recipient, excessiveAmount);
     }
 
     //授权转账测试
@@ -74,8 +74,8 @@ contract MyTokenTest is Test {
 
         token.approve(spender, amount);
         vm.prank(spender);
-        token.transferFrom(address(this),recipient,transferAmount);
-        assertEq(token.allowance(address(this),spender), amount - transferAmount);
+        token.transferFrom(address(this), recipient, transferAmount);
+        assertEq(token.allowance(address(this), spender), amount - transferAmount);
         assertEq(token.balances(recipient), recipientBalanceBefore + transferAmount);
         assertEq(token.balances(address(this)), deployerBalanceBefore - transferAmount);
     }
@@ -89,8 +89,7 @@ contract MyTokenTest is Test {
         bool success = token.mint(recipient, mintAmount);
         assertTrue(success);
         assertEq(totalSupplyBefore + mintAmount, token.totalSupply());
-        assertEq(token.balances(recipient),recipientBalanceBefore + mintAmount);
-        
+        assertEq(token.balances(recipient), recipientBalanceBefore + mintAmount);
     }
 
     //销毁测试
@@ -100,8 +99,8 @@ contract MyTokenTest is Test {
         uint256 BalanceBeforeBurn = token.balances(address(this));
         bool success = token.burn(burnAmount);
         assertTrue(success);
-        assertEq(token.balances(address(this)),BalanceBeforeBurn - burnAmount);
-        assertEq(totalSupplyBefore -burnAmount, token.totalSupply());
+        assertEq(token.balances(address(this)), BalanceBeforeBurn - burnAmount);
+        assertEq(totalSupplyBefore - burnAmount, token.totalSupply());
     }
 
     //测试非owner无法铸造
