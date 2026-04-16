@@ -1,10 +1,14 @@
 name: CI
 
-permissions: {}
+permissions:
+  contents: read
+  checks: write
 
 on:
   push:
+    branches: [main, master]
   pull_request:
+    branches: [main, master]
   workflow_dispatch:
 
 env:
@@ -28,11 +32,14 @@ jobs:
       - name: Show Forge version
         run: forge --version
 
-      - name: Run Forge fmt
-        run: forge fmt 
+      - name: Run Forge fmt check
+        run: forge fmt --check
 
       - name: Run Forge build
         run: forge build --sizes --use solc:0.8.20
 
       - name: Run Forge tests
         run: forge test -vvv
+
+      - name: Run Forge coverage
+        run: forge coverage --report summary
