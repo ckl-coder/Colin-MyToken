@@ -10,7 +10,10 @@
 - ✅ 标准 ERC-20 功能（转账、授权、查询余额）
 - ✅ 铸造（mint）和销毁（burn）功能
 - ✅ 权限控制（只有 owner 可以铸造）
-- ✅ 完整的测试覆盖（8 个测试用例）
+- ✅ **暂停功能（Pausable）** - 紧急情况下暂停所有交易
+- ✅ **重入锁保护（ReentrancyGuard）** - 防止重入攻击
+- ✅ **黑名单机制** - 阻止特定地址参与交易
+- ✅ 完整的测试覆盖
 - ✅ CI/CD 自动化测试
 - ✅ 前端管理界面（React + wagmi + RainbowKit）
 
@@ -65,11 +68,33 @@ forge coverage
 
 | 功能 | 描述 | 访问权限 |
 |------|------|----------|
-| `transfer` | 转账代币 | 任何人 |
+| `transfer` | 转账代币 | 任何人（非暂停状态、非黑名单） |
 | `approve` | 授权他人使用代币 | 代币持有者 |
-| `transferFrom` | 代他人转账 | 被授权者 |
-| `mint` | 铸造新代币 | 仅 owner |
-| `burn` | 销毁代币 | 代币持有者 |
+| `transferFrom` | 代他人转账 | 被授权者（非暂停状态、非黑名单） |
+| `mint` | 铸造新代币 | 仅 owner（非暂停状态） |
+| `burn` | 销毁代币 | 代币持有者（非暂停状态） |
+| `pause` | 暂停合约 | 仅 owner |
+| `unpause` | 恢复合约 | 仅 owner |
+| `addToBlacklist` | 添加地址到黑名单 | 仅 owner |
+| `removeBlacklist` | 从黑名单移除地址 | 仅 owner |
+| `isBlacklisted` | 查询地址是否在黑名单中 | 任何人 |
+
+### 安全模块
+
+#### 1. 暂停功能（Pausable）
+- 紧急情况下可以暂停所有代币转账
+- 只有合约 owner 可以暂停/恢复
+- 暂停期间所有转账操作将回滚
+
+#### 2. 重入锁保护（ReentrancyGuard）
+- 防止重入攻击
+- 保护 `transfer`、`transferFrom`、`mint`、`burn` 函数
+- 使用状态锁机制确保函数安全执行
+
+#### 3. 黑名单机制（Blacklist）
+- 可以阻止特定地址参与交易
+- 适用于合规要求或安全事件处理
+- 只有 owner 可以管理黑名单
 
 ## 测试覆盖
 
@@ -81,6 +106,9 @@ forge coverage
 - ✅ 铸造功能（owner）
 - ✅ 非 owner 铸造失败
 - ✅ 销毁功能
+- ✅ 暂停功能测试
+- ✅ 重入攻击防护测试
+- ✅ 黑名单功能测试
 
 ## 前端界面
 
@@ -115,15 +143,21 @@ npm run dev
 ```
 .
 ├── src/
-│   └── MyToken.sol          # 代币合约
+│   ├── MyToken.sol              # 主合约（继承各安全模块）
+│   ├── security/
+│   │   ├── Pausable.sol         # 暂停功能模块
+│   │   ├── ReentrancyGuard.sol  # 重入锁模块
+│   │   └── Blacklist.sol        # 黑名单模块
+│   └── interfaces/
 ├── test/
-│   └── MyTokenTest.t.sol    # 测试文件
-├── my-frontend/             # 前端项目
+│   ├── MyTokenTest.t.sol        # 主合约测试
+│   └── security/                # 安全模块测试
+├── my-frontend/                 # 前端项目
 │   ├── src/
-│   │   ├── components/      # React 组件
-│   │   └── app/             # 页面
+│   │   ├── components/          # React 组件
+│   │   └── app/                 # 页面
 │   └── ...
-├── .github/workflows/       # CI/CD 配置
+├── .github/workflows/           # CI/CD 配置
 └── README.md
 ```
 
