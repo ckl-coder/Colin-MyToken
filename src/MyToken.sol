@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {Pausable} from "./Pausable.sol";
+import {Pausable} from "./security/Pausable.sol";
+import {Blacklist} from "./security/Blacklist.sol";
+import {ReentrancyGuard} from "./security/ReentrancyGuard.sol";
 
-contract MyToken is Pausable {
+contract MyToken is Pausable, Blacklist, ReentrancyGuard {
     string public name;
     string public symbol;
     uint8 public decimals; //八位足够，过多会浪费存储空间，Gas费高
@@ -35,7 +37,7 @@ contract MyToken is Pausable {
     }
 
     //转账（从msg.sender转向用户）
-    function transfer(address to, uint256 amount) public returns (bool) {
+    function transfer(address to, uint256 amount) public whenNotPaused notBlacklisted(msg.sender) nonReentrant returns (bool) {
         require(balances[msg.sender] >= amount, "Insufficient balance");
         balances[msg.sender] -= amount;
         balances[to] += amount;
@@ -53,7 +55,7 @@ contract MyToken is Pausable {
 
     //授权转账(transferFrom)
     //被授权的人帮你转账
-    function transferFrom(address from, address to, uint256 amount) public returns (bool) {
+    function transferFrom(address from, address to, uint256 amount) public whenNotPaused notBlacklisted(from) nonReentrant returns (bool) {
         require(balances[from] >= amount, "Insufficient balance for transfer");
         require(allowance[from][msg.sender] >= amount, "Insufficient allowance");
         balances[from] -= amount;
@@ -64,7 +66,7 @@ contract MyToken is Pausable {
     }
 
     //mint铸造
-    function mint(address to, uint256 amount) public onlyOwner returns (bool) {
+    function mint(address to, uint256 amount) public onlyOwner whenNotPaused nonReentrant returns (bool) {
         balances[to] += amount;
         totalSupply += amount;
         emit Transfer(address(0), to, amount);
@@ -72,7 +74,7 @@ contract MyToken is Pausable {
     }
 
     //burn销毁
-    function burn(uint256 amount) public returns (bool) {
+    function burn(uint256 amount) public whenNotPaused nonReentrant returns (bool) {
         require(balances[msg.sender] >= amount, "Insufficient amount");
         balances[msg.sender] -= amount;
         totalSupply -= amount;
@@ -87,5 +89,14 @@ contract MyToken is Pausable {
     
     function unpause() public onlyOwner {
         _unpause();
+    }
+
+    //包装函数：黑名单管理
+    function addToBlacklist(address account) public onlyOwner {
+        _addToBlacklist(account);
+    }
+
+    function removeBlacklist(address account) public onlyOwner {
+        _removeFromBlacklist(account);
     }
 }
