@@ -2,11 +2,8 @@
 pragma solidity ^0.8.20;
 
 import {MyToken} from "../MyToken.sol";
-import "../security/Pausable.sol";
-import "../security/ReentrancyGuard.sol";
-import "../security/Blacklist.sol";
 
-contract LPToken is MyToken, Pausable, ReentrancyGuard, Blacklist {
+contract LPToken is MyToken {
     address public liquidityPool;
 
     event Mint(address indexed to, uint256 value);
